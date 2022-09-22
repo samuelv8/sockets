@@ -13,7 +13,7 @@ python3 server.py [host] [port] [dir]
 
 ## Start client
 ```
-python3 client.py [url]
+python3 client.py [url] [url] [...]
 ```
 
 ## Scripts
