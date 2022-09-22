@@ -1,1 +1,1 @@
-rm -rf __pycache__ *.py[cod]
+rm -rf __pycache__ *.py[cod] *.html
