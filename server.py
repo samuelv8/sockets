@@ -99,6 +99,7 @@ connection.
 def process_request(conn: socket, addr):
     try:
         request = get_client_request(conn)
+        print(request)
 
         headers = request.split('\n')
         filename = headers[0].split()[1]
