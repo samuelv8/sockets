@@ -5,7 +5,7 @@
 
 import sys
 from contextlib import contextmanager
-from threading import Thread, Lock
+from threading import Thread
 from socket import socket, \
     AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 
@@ -60,22 +60,21 @@ def get_file_content(dir, filename):
     try:
         fin = open(dir + filename)
         content = fin.read()
-        status = 200
         fin.close()
+        status = 200
     except FileNotFoundError:
         fin = open('docs/not-found.html')
         content  = fin.read()
         fin.close()
+        status = 404
     
-    return content, status or 404,
+    return content, status
 
-"""
-"""
+
 def get_client_request(conn: socket):
     return conn.recv(1024).decode()
 
-"""
-"""
+
 def send_http_response(conn: socket, res: str):
     return conn.sendall(res.encode())
 
@@ -86,7 +85,6 @@ connection.
 def process_request(conn: socket, addr):
     try:
         request = get_client_request(conn)
-        print(request)
 
         headers = request.split('\n')
         filename = headers[0].split()[1]
@@ -94,8 +92,10 @@ def process_request(conn: socket, addr):
 
         if status == 200:
             response = 'HTTP/1.0 200 OK\n\n' + content
+        elif status == 404:
+            response = 'HTTP/1.0 404 Not Found\n\n' + content
         else:
-            response = 'HTTP/1.0 404 Not Found' + content
+            response = 'HTTP/1.0 400 Bad Request\n\n'
     except:
         response = 'HTTP/1.0 400 Bad Request\n\n'
     finally:
