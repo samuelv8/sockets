@@ -20,9 +20,9 @@ python3 client.py [url] [url] [...]
 ### clean
 Removes any cache file
 ```
-./scripts/clean.sh
+bash scripts/clean.sh
 ```
 ### tarball
 Compress all files to `filename.tar.gz`
 ```
-./scripts/tarball.sh filename
+bash scripts/tarball.sh filename
