@@ -4,9 +4,11 @@
 """
 import sys
 import re
+import traceback
 from contextlib import contextmanager
-from socket import socket, AF_INET, SOCK_STREAM
+from socket import socket, gethostbyname, AF_INET, SOCK_STREAM
 
+DEBUG = False
 
 """
 Return a URL list from args
@@ -28,7 +30,7 @@ def parse_url(url: str) -> tuple:
     if type(url) != str:
         raise TypeError("Argument is not a string")
     m = re.search(
-        r'(?:https?://)?(?:\w+\.)?(\w+)(?:\.\w{2,4})?(?:\.\w{2,4})?(:\d+)?(/[\w\-\._]*)',
+        r'(?:https?://)?((?:\w+\.)?\w+(?:\.\w{2,4})?(?:\.\w{2,4})?)(:\d+)?(/[\w\-\._]*)',
         url
     )
     if m is None:
@@ -44,8 +46,9 @@ Returns a socket instance, with provided params.
 """
 
 
-def create_socket(host: str, port: str):
+def create_socket(hostname: str, port: str):
     sckt = socket(AF_INET, SOCK_STREAM)
+    host = gethostbyname(hostname)
     sckt.connect((host, port))
     return sckt
 
@@ -71,11 +74,11 @@ Builds a basic request header with given params
 
 def build_request_header(hostname: str, port: int, filepath: str):
     header = ''
-    header += f'GET {filepath} HTTP/1.0\n'
-    header += f'Host: {hostname}:{port}\n'
-    header += 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:104.0) Gecko/20100101 Firefox/104.0\n'
-    header += 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8\n'
-    header += '\n'
+    header += f'GET {filepath} HTTP/1.0\r\n'
+    header += f'Host: {hostname}:{port}\r\n'
+    header += 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:104.0) Gecko/20100101 Firefox/104.0\r\n'
+    header += 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8\r\n'
+    header += '\r\n'
     return header
 
 
@@ -85,7 +88,7 @@ Parses a HTTP response returning relevant content for project purposes
 
 
 def parse_response(res: str) -> tuple:
-    parts = res.split('\n\n')
+    parts = res.split('\r\n\r\n')
     header = parts[0]
     body = parts[1]
     first = header.split('\n', 1)[0]
@@ -112,8 +115,11 @@ if __name__ == '__main__':
         try:
             hostname, port, filepath = parse_url(url)
         except Exception as e:
-            print('Invalid URL: ', url)
-            print(e)
+            if DEBUG:
+                print(traceback.format_exc())
+            else:
+                print('Invalid URL ', url)
+                print(e)
             continue
         with open_socket(hostname, port) as client_socket:
             try:
@@ -126,6 +132,7 @@ if __name__ == '__main__':
 
                 ok, status, phrase, body = parse_response(res)
                 if ok:
+                    # Save response body for sucessfull request
                     filename = filepath[1:] if filepath != '/' else 'index.html'
                     save_file(filename, res)
                 else:
@@ -135,5 +142,9 @@ if __name__ == '__main__':
                 print('\nTerminating...')
                 break
             except Exception as e:
-                print(e)
+                if DEBUG:
+                    print(traceback.format_exc())
+                else:
+                    print('The following error occurred while processing request for ', url)
+                    print(e)
                 continue
