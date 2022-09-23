@@ -106,13 +106,13 @@ def process_request(conn: socket, addr):
         content, status = get_file_content(server_dir, filename)
 
         if status == 200:
-            response = 'HTTP/1.0 200 OK\n\n' + content
+            response = 'HTTP/1.0 200 OK\r\n\r\n' + content
         elif status == 404:
-            response = 'HTTP/1.0 404 Not Found\n\n' + content
+            response = 'HTTP/1.0 404 Not Found\r\n\r\n' + content
         else:
-            response = 'HTTP/1.0 400 Bad Request\n\n'
+            response = 'HTTP/1.0 400 Bad Request\r\n\r\n'
     except:
-        response = 'HTTP/1.0 400 Bad Request\n\n'
+        response = 'HTTP/1.0 400 Bad Request\r\n\r\n'
     finally:
         send_http_response(conn, response)
         conn.close()
