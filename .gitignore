@@ -132,3 +132,4 @@ dmypy.json
 *.tgz
 *.zip
 *.tar.gz
+*.html
